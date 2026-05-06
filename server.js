@@ -24,15 +24,25 @@ function spawnObstacles(count = 80) {
   for (let i = 0; i < count; i++) {
     const r = Math.random();
     const o = { id: uuidv4(), x: Math.random() * WORLD_W, y: Math.random() * WORLD_H };
-    if (r < 0.5) {
+    // if (r < 0.5) {
+    //   o.type = "rect";
+    //   o.w = 60 + Math.random() * 60;
+    //   o.h = 60 + Math.random() * 60;
+    // } else {
+    //   o.type = "hex";
+    //   o.size = 60 + Math.random() * 50;
+    // }
+    if (r < 0.33) {
       o.type = "rect";
       o.w = 60 + Math.random() * 60;
       o.h = 60 + Math.random() * 60;
-    } else {
+    } else if (r < 0.66) {
       o.type = "hex";
       o.size = 60 + Math.random() * 50;
+    } else {
+      o.type = "tri";
+      o.size = 60 + Math.random() * 50;
     }
-
     o.maxHp = 120 + Math.random() * 150;
     o.hp = o.maxHp;
     world.obstacles.push(o);
@@ -46,12 +56,23 @@ function respawnObstacle(id) {
     x: Math.random() * WORLD_W,
     y: Math.random() * WORLD_H
   };
-  if (r < 0.5) {
+  // if (r < 0.5) {
+  //   newObs.type = "rect";
+  //   newObs.w = 60 + Math.random() * 60;
+  //   newObs.h = 60 + Math.random() * 60;
+  // } else {
+  //   newObs.type = "hex";
+  //   newObs.size = 60 + Math.random() * 50;
+  // }
+  if (r < 0.33) {
     newObs.type = "rect";
     newObs.w = 60 + Math.random() * 60;
     newObs.h = 60 + Math.random() * 60;
-  } else {
+  } else if (r < 0.66) {
     newObs.type = "hex";
+    newObs.size = 60 + Math.random() * 50;
+  } else {
+    newObs.type = "tri";
     newObs.size = 60 + Math.random() * 50;
   }
   newObs.maxHp = 120 + Math.random() * 150;
@@ -151,6 +172,29 @@ function pointInObstacle(px, py, o) {
     const s = o.size / 2, dx = Math.abs(px - o.x), dy = Math.abs(py - o.y);
     return dx <= s && dy <= s * 0.866;
   }
+  if (o.type === "tri") {
+    const s = o.size / 2;
+
+    const x1 = o.x;
+    const y1 = o.y - s;
+
+    const x2 = o.x + s;
+    const y2 = o.y + s;
+
+    const x3 = o.x - s;
+    const y3 = o.y + s;
+
+    const area = (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+
+    const area1 = (px * (y2 - y3) + x2 * (y3 - py) + x3 * (py - y2));
+    const area2 = (x1 * (py - y3) + px * (y3 - y1) + x3 * (y1 - py));
+    const area3 = (x1 * (y2 - py) + x2 * (py - y1) + px * (y1 - y2));
+
+    return (area >= 0)
+      ? (area1 >= 0 && area2 >= 0 && area3 >= 0)
+      : (area1 <= 0 && area2 <= 0 && area3 <= 0);
+  }
+
   return false;
 }
 
@@ -448,12 +492,15 @@ function update() {
             let xpGain = 0;
 
             if (o.type === "rect") {
-              scoreGain = 10;
-              xpGain = 5;
+              scoreGain = 20;
+              xpGain = 10;
             }
             else if (o.type === "hex") {
               scoreGain = 30;
               xpGain = 12;
+            } else if (o.type === "tri") {
+              scoreGain = 10;
+              xpGain = 8;
             }
 
             owner.score += scoreGain;
@@ -527,13 +574,13 @@ setInterval(update, 1000 / TICK_RATE);
 setInterval(() => {
   const playersForClient = Object.values(world.players).map(p => ({
     ...p,
-    stats: p.upgrades 
+    stats: p.upgrades
   }));
 
   const sorted = playersForClient.sort((a, b) => b.score - a.score).slice(0, 5);
   const payload = JSON.stringify({
     type: "state",
-    players: playersForClient, 
+    players: playersForClient,
     bullets: world.bullets,
     obstacles: world.obstacles,
     leaderboard: sorted.map(p => ({ name: p.name, score: p.score, level: p.level }))

@@ -876,6 +876,14 @@
           }
           ctx.closePath();
           ctx.fill();
+        } else if (o.type === 'tri') {
+          const s = o.size || 40;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - s / 2);
+          ctx.lineTo(sx + s / 2, sy + s / 2);
+          ctx.lineTo(sx - s / 2, sy + s / 2);
+          ctx.closePath();
+          ctx.fill();
         }
         const hpPerc = o.hp / o.maxHp;
         if (o.type === 'rect') {
@@ -883,7 +891,13 @@
           ctx.fillRect(sx + 4, sy + 4, o.w - 8, 5);
           ctx.fillStyle = '#2ecc71';
           ctx.fillRect(sx + 4, sy + 4, (o.w - 8) * hpPerc, 5);
-        } else {
+        } if (o.type === 'rect') {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(sx + 4, sy + 4, o.w - 8, 5);
+          ctx.fillStyle = '#2ecc71';
+          ctx.fillRect(sx + 4, sy + 4, (o.w - 8) * hpPerc, 5);
+        }
+        else if (o.type === 'tri' || o.type === 'hex') {
           ctx.fillStyle = '#000';
           ctx.fillRect(sx - 20, sy - 10, 40, 4);
           ctx.fillStyle = '#2ecc71';
