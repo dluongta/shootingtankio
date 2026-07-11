@@ -685,23 +685,19 @@
           const me = state.players.find(p => p.id === clientId);
 
           if (me) {
-            // nếu có điểm nâng cấp mới → cho phép mở lại menu
             if (me.upgradePoints > lastUpgradePoints) {
               upgradeClosed = false;
             }
 
-            // hiển thị menu nếu còn điểm và chưa bị đóng thủ công
             if (me.upgradePoints > 0 && !upgradeClosed) {
               showUpgradeMenu();
               upgradeUI.style.display = 'block';
             }
 
-            // hết điểm → ẩn menu
             if (me.upgradePoints <= 0) {
               upgradeUI.style.display = 'none';
             }
 
-            // lưu lại số điểm hiện tại
             lastUpgradePoints = me.upgradePoints;
 
 
